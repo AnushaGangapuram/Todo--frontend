@@ -2,39 +2,59 @@ import axios from "axios";
 
 const TODO_API_BASE_URL = "http://localhost:8081/apis/Todo";
 
-// Function to get the authentication headers
-const getAuthHeaders = () => {
-  const token = localStorage.getItem("token"); // Retrieve token from localStorage
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
-// Axios instance with base configuration
-const api = axios.create({
-  baseURL: TODO_API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// Add Axios request interceptor to include the token automatically
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+// Function to create an axios instance with the latest token
+const createTodoAxios = () => {
+    const token = localStorage.getItem("access_token");  // Change this from 'token' to 'access_token'
+  
+    console.log("Token found in localStorage:", token);
+  
+    if (!token) {
+      console.error("No token found! API call aborted.");
+      return null;  // Prevent API calls if no token exists
     }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+  
+    return axios.create({
+      baseURL: TODO_API_BASE_URL,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+  };
 
 // API Calls
-export const getTodos = () => api.get("/getAll");
-export const addTodo = (todo) => api.post("/add", todo);
-export const updateTodo = (id, todo) => api.put(`/${id}`, todo);
-export const deleteTodo = (id) => api.delete(`/${id}`);
-export const completeTodo = (id) => api.patch(`/${id}/complete`);
-export const inCompleteTodo = (id) => api.patch(`/${id}/incomplete`);
+export const getTodos = async () => {
+  const axiosInstance = createTodoAxios();
+  if (!axiosInstance) return Promise.reject("No token found");
+  return axiosInstance.get("/getAll");
+};
 
-// Debugging: Check if token is present
-console.log("Token in localStorage:", localStorage.getItem("token"));
+export const addTodo = async (todo) => {
+  const axiosInstance = createTodoAxios();
+  if (!axiosInstance) return Promise.reject("No token found");
+  return axiosInstance.post("/add", todo);
+};
+
+export const updateTodo = async (id, todo) => {
+  const axiosInstance = createTodoAxios();
+  if (!axiosInstance) return Promise.reject("No token found");
+  return axiosInstance.put(`/${id}`, todo);
+};
+
+export const deleteTodo = async (id) => {
+  const axiosInstance = createTodoAxios();
+  if (!axiosInstance) return Promise.reject("No token found");
+  return axiosInstance.delete(`/${id}`);
+};
+
+export const completeTodo = async (id) => {
+  const axiosInstance = createTodoAxios();
+  if (!axiosInstance) return Promise.reject("No token found");
+  return axiosInstance.patch(`/${id}/complete`);
+};
+
+export const inCompleteTodo = async (id) => {
+  const axiosInstance = createTodoAxios();
+  if (!axiosInstance) return Promise.reject("No token found");
+  return axiosInstance.patch(`/${id}/incomplete`);
+};
